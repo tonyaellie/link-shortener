@@ -16,6 +16,8 @@ const Home = async () => {
     );
   }
 
+  // fetch all domains
+
   return (
     <main className="min-h-screen">
       <LinkShortener />

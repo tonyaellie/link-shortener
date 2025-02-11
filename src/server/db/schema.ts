@@ -15,22 +15,9 @@ import {
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = mysqlTableCreator((name) => `link-shortener_${name}`);
-
-// export const posts = createTable(
-//   "post",
-//   {
-//     id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-//     name: varchar("name", { length: 256 }),
-//     createdAt: timestamp("created_at")
-//       .default(sql`CURRENT_TIMESTAMP`)
-//       .notNull(),
-//     updatedAt: timestamp("updated_at").onUpdateNow(),
-//   },
-//   (example) => ({
-//     nameIndex: index("name_idx").on(example.name),
-//   })
-// );
+export const createTable = mysqlTableCreator(
+  (name) => `link-shortener_${name}`,
+);
 
 export const user = createTable("user", {
   id: varchar("id", { length: 36 }).primaryKey(),
@@ -80,4 +67,15 @@ export const verification = createTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
+});
+
+export const domain = createTable("domain", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 })
+    .notNull()
+    .references(() => user.id),
+  domainName: text("domain_name").notNull(),
+  path: text("path").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),
 });
