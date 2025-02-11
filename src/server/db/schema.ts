@@ -75,6 +75,7 @@ export const domain = createTable("domain", {
     .notNull()
     .references(() => user.id),
   domainName: text("domain_name").notNull(),
+  repo: varchar("repo", { length: 255 }).notNull(),
   path: text("path").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow().onUpdateNow(),

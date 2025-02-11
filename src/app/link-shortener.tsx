@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   Tabs,
@@ -8,9 +7,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/app/components/ui/tabs";
-import { Button } from "~/app/components/ui/button";
-import { Input } from "~/app/components/ui/input";
-import { Label } from "~/app/components/ui/label";
+import { Button, buttonVariants } from "~/app/components/ui/button";
 import {
   Table,
   TableBody,
@@ -19,139 +16,136 @@ import {
   TableHeader,
   TableRow,
 } from "~/app/components/ui/table";
-import { PlusCircle, RefreshCw, Check, X, Plus } from "lucide-react";
+import {
+  PlusCircle,
+  RefreshCw,
+  Check,
+  X,
+  Plus,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { Badge } from "~/app/components/ui/badge";
+import { AddOrEdit } from "./components/AddOrEdit";
+import { cn } from "./lib/utils";
+import { deleteRedirect } from "~/utils/actions";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
-// Mock data
-const initialDomains = [
-  {
-    name: "example.com",
-    redirects: [
-      {
-        from: ["short1", "alias1"],
-        to: "https://destination.com/full-url",
-        isLive: true,
-      },
-      {
-        from: ["short2"],
-        to: "https://another-destination.com",
-        isLive: false,
-      },
-    ],
-  },
-  {
-    name: "another-domain.com",
-    redirects: [],
-  },
-];
+export const LinkShortener = ({
+  configs,
+}: {
+  configs: {
+    id: string;
+    domain: string;
+    repo: string;
+    path: string;
+    redirects: {
+      from: string[];
+      to: string;
+      id: string;
+    }[];
+  }[];
+  }) => {
+  const [statuses, setStatuses] = useState({});
+  const usedFrom = [
+    ...new Set(...configs.flatMap((c) => c.redirects.map((r) => r.from))),
+  ];
 
-export default function LinkShortener() {
-  const [domains, setDomains] = useState(initialDomains);
-  const [newRedirect, setNewRedirect] = useState({ from: [""], to: "" });
-
-  const addRedirect = (domainIndex: number) => {
-    const updatedDomains = [...domains];
-    updatedDomains[domainIndex].redirects.push({
-      ...newRedirect,
-      isLive: false,
-    });
-    setDomains(updatedDomains);
-    setNewRedirect({ from: [""], to: "" });
-  };
-
-  const addFromValue = () => {
-    setNewRedirect({ ...newRedirect, from: [...newRedirect.from, ""] });
-  };
-
-  const updateFromValue = (index: number, value: string) => {
-    const newFrom = [...newRedirect.from];
-    newFrom[index] = value;
-    setNewRedirect({ ...newRedirect, from: newFrom });
-  };
-
-  const recheckRedirect = (domainIndex: number, redirectIndex: number) => {
-    const updatedDomains = [...domains];
-    // Simulate checking the redirect
-    updatedDomains[domainIndex].redirects[redirectIndex].isLive =
-      Math.random() > 0.5;
-    setDomains(updatedDomains);
-  };
-
-  const recheckAllRedirects = (domainIndex: number) => {
-    const updatedDomains = [...domains];
-    updatedDomains[domainIndex].redirects.forEach((redirect, index) => {
-      // Simulate checking all redirects
-      redirect.isLive = Math.random() > 0.5;
-    });
-    setDomains(updatedDomains);
-  };
+  useEffect(() => { 
+    // fetch statuses
+    // void getStatus(configs[0]!.domain, configs[0]!.secret);
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
+      {usedFrom}
       <h1 className="mb-4 text-2xl font-bold">Link Shortener</h1>
-      <Tabs defaultValue={domains[0]?.name}>
+      <Tabs defaultValue={configs.map((c) => c.id)[0]}>
         <div className="mb-4 flex items-center justify-between">
           <TabsList>
-            {domains.map((domain) => (
-              <TabsTrigger key={domain.name} value={domain.name}>
-                {domain.name}
+            {configs.map((c) => (
+              <TabsTrigger key={c.domain} value={c.id}>
+                {c.domain}
               </TabsTrigger>
             ))}
           </TabsList>
-          <Link
-            href="/add-domain"
-            className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-          >
+          <Link href="/add" className={buttonVariants()}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Domain
           </Link>
         </div>
 
-        {domains.map((domain, domainIndex) => (
-          <TabsContent key={domain.name} value={domain.name}>
+        {configs.map((config, configIndex) => (
+          <TabsContent key={config.id} value={config.id}>
             <div className="mb-4">
               <h2 className="mb-2 text-xl font-semibold">
-                Redirects for {domain.name}
+                Redirects for {config.domain}
               </h2>
               <Button
-                onClick={() => recheckAllRedirects(domainIndex)}
+                onClick={() => {
+                  throw new Error("Implement all refresh");
+                }}
                 className="mb-2"
               >
-                <RefreshCw className="mr-2 h-4 w-4" /> Recheck All Redirects
+                <RefreshCw className="mr-2 h-4 w-4" /> Update Status
               </Button>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>From</TableHead>
                     <TableHead>To</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead className="text-center">Edit</TableHead>
+                    <TableHead className="text-center">Delete</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {domain.redirects.map((redirect, redirectIndex) => (
+                  {config.redirects.map((redirect, redirectIndex) => (
                     <TableRow key={redirectIndex}>
-                      <TableCell>
+                      <TableCell className="flex flex-wrap gap-2">
                         {redirect.from.map((from, fromIndex) => (
-                          <div key={fromIndex} className="mb-1">
-                            <Label>{from}</Label>
-                          </div>
+                          <Badge key={fromIndex}>{from}</Badge>
                         ))}
                       </TableCell>
-                      <TableCell>{redirect.to}</TableCell>
                       <TableCell>
-                        {redirect.isLive ? (
-                          <Check className="text-green-500" />
-                        ) : (
-                          <X className="text-red-500" />
-                        )}
+                        <a
+                          className={cn(
+                            buttonVariants({ variant: "link" }),
+                            "hover:cursor-pointer",
+                          )}
+                          href={redirect.to}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {redirect.to}
+                        </a>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
+                        <AddOrEdit
+                          repo={config.repo}
+                          path={config.path}
+                          usedFrom={usedFrom}
+                          edit={{
+                            id: redirect.id,
+                            from: redirect.from,
+                            to: redirect.to,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
                         <Button
                           onClick={() =>
-                            recheckRedirect(domainIndex, redirectIndex)
+                            toast.promise(
+                              deleteRedirect({
+                                id: redirect.id,
+                                repo: config.repo,
+                                path: config.path,
+                              }),
+                            )
                           }
-                          size="sm"
+                          size="icon"
+                          variant="destructive"
                         >
-                          <RefreshCw className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -159,44 +153,14 @@ export default function LinkShortener() {
                 </TableBody>
               </Table>
             </div>
-            <div className="mt-4">
-              <h3 className="mb-2 text-lg font-semibold">Add New Redirect</h3>
-              <div className="space-y-2">
-                {newRedirect.from.map((from, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Label htmlFor={`from-${index}`}>From:</Label>
-                    <Input
-                      id={`from-${index}`}
-                      value={from}
-                      onChange={(e) => updateFromValue(index, e.target.value)}
-                      className="flex-grow"
-                    />
-                    {index === newRedirect.from.length - 1 && (
-                      <Button onClick={addFromValue} size="sm">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="to">To:</Label>
-                  <Input
-                    id="to"
-                    value={newRedirect.to}
-                    onChange={(e) =>
-                      setNewRedirect({ ...newRedirect, to: e.target.value })
-                    }
-                    className="flex-grow"
-                  />
-                </div>
-                <Button onClick={() => addRedirect(domainIndex)}>
-                  Add Redirect
-                </Button>
-              </div>
-            </div>
+            <AddOrEdit
+              repo={config.repo}
+              path={config.path}
+              usedFrom={usedFrom}
+            />
           </TabsContent>
         ))}
       </Tabs>
     </div>
   );
-}
+};
