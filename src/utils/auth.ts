@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { oAuthProxy } from "better-auth/plugins";
 import { env } from "~/env";
 import { db } from "~/server/db"; // your drizzle instance
 import * as schema from "~/server/db/schema";
@@ -16,8 +15,7 @@ export const auth = betterAuth({
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
       scope: ["repo"],
-      redirectURI: "https://links.tokia.dev/api/auth/callback/github",
     },
   },
-  plugins: [nextCookies(), oAuthProxy()],
+  plugins: [nextCookies()],
 });
